@@ -1,0 +1,36 @@
+body {
+  font-family: "Open Sans", sans-serif;
+  font-size: 16px;
+}
+
+header {
+  display: flex;
+  justify-content: center;
+}
+
+hr {
+  display: block;
+  height: 1px;
+  border: 0;
+  border-top: 3px solid #000;
+  margin: 1em 0;
+  padding: 0;
+}
+
+i {
+  cursor: pointer;
+}
+
+#currentCity {
+  display: flex;
+  align-items: center;
+  height: 50px;
+}
+
+.weather-icon {
+  width: 50px;
+}
+
+.hidden {
+  display: none;
+}
