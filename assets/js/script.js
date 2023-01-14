@@ -5,18 +5,20 @@ const WEATHER_ICON = "http://openweathermap.org/img/wn/";
 $(document).ready(function () {
   let latitude = 0;
   let longitude = 0;
-
   let currDTValue = "";
   const fiveDaysOfWeather = [];
+  let savedSearches = JSON.parse(localStorage.getItem("saved_searches")) || [];
 
   const getSearchCityWeather = () => {
     $("#searchBtn").on("click", () => {
       const cityName = $("#inputCity").val();
-      getCityLocationApi(cityName);
+      if (cityName !== "") {
+        getWeatherApi(cityName);
+      }
     });
   };
 
-  const getCityLocationApi = (city) => {
+  const getWeatherApi = (city) => {
     const endpoint = `${API_ENDPOINT}geo/1.0/direct?q=${city}&limit=1&appid=${API_KEY}`;
 
     fetch(endpoint)
@@ -27,6 +29,24 @@ $(document).ready(function () {
         console.log("getCityLocationApi", data);
         latitude = data[0].lat;
         longitude = data[0].lon;
+        const savedData = {
+          lat: latitude,
+          lng: longitude,
+          city,
+        };
+
+        const exists =
+          savedSearches.findIndex(
+            (s) => s.city.toLowerCase() === savedData.city.toLowerCase()
+          ) > -1;
+
+        if (!exists) {
+          savedSearches.push(savedData);
+        }
+
+        localStorage.setItem("saved_searches", JSON.stringify(savedSearches));
+        showSearchHistory();
+
         getCityCurrentWeatherByLatLng(latitude, longitude);
         getCity5DayWeatherByLatLng(latitude, longitude);
       });
@@ -50,6 +70,7 @@ $(document).ready(function () {
 
         $("#currentCity").text(`City: ${currentCity} `);
         $("#currentDay").text(` (${currentDate})`);
+        $("#weatherIcon").empty();
         $("<img />", {
           class: "weather-icon",
         })
@@ -76,6 +97,7 @@ $(document).ready(function () {
   };
 
   const parseWeatherData = (data) => {
+    fiveDaysOfWeather.length = 0;
     data.forEach((obj) => {
       // use moment or dayjs to parse the obj dt variable and get the "real date"
       const dateObj = moment.unix(obj.dt);
@@ -87,7 +109,7 @@ $(document).ready(function () {
       // we must be on a new day
       if (
         currDay !== currDTValue &&
-        fiveDaysOfWeather.length <= 6 &&
+        fiveDaysOfWeather.length < 5 &&
         !fiveDaysOfWeather.find((day) => day.dt === obj.dt)
       ) {
         // update the global variable so we don't use this day again
@@ -100,7 +122,7 @@ $(document).ready(function () {
 
     // Once the code gets here, we should have one weather object per day.
     console.log(fiveDaysOfWeather);
-    fiveDaysOfWeather.forEach((d) => {});
+    parse5DayForecastHTML(fiveDaysOfWeather);
   };
 
   // Convert Kelvin to Fahrenheit
@@ -108,147 +130,88 @@ $(document).ready(function () {
     return Math.ceil(1.8 * (kelvin - 273) + 32);
   };
 
-  const showHideDeleteIcon = (str) => {
-    const storageKeys = Object.keys(localStorage);
-    if (storageKeys.includes(str)) {
-      return "";
-    } else {
-      return "hidden";
-    }
-  };
+  // Create dynamic 5-day forecast html
+  const parse5DayForecastHTML = (data) => {
+    $("#fiveDayForecast").empty();
+    data.forEach((d, index) => {
+      const currentDate = moment.unix(d.dt).format("MM/DD/YYYY");
+      const currentWeatherIcon = `${WEATHER_ICON}${d.weather[0].icon}@2x.png`;
+      const fahrenheit = convertKToF(d.main.temp);
+      const wind = d.wind.speed;
+      const humidity = d.main.humidity;
 
-  // Create time block content element depend on business hours
-  // businessHoursArr.forEach((h) => {
-  //   // Time block
-  //   $("<div/>", {
-  //     id: `hour-${h}`,
-  //     class: `row time-block ${getTime(h)}`,
-  //   }).appendTo("#time-block-container");
+      $("<div/>", {
+        id: `card-${index}`,
+        class: `card col-lg col-md-3 col-sm-6`,
+      }).appendTo("#fiveDayForecast");
 
-  //   // Create business hour text
-  //   $("<div/>", {
-  //     id: `text-center-${h}`,
-  //     class: "col-2 col-md-1 hour text-center py-3",
-  //   }).appendTo(`#hour-${h}`);
+      $("<div/>", {
+        id: `card-body-${index}`,
+        class: "card-body custom-card-body",
+      }).appendTo(`#card-${index}`);
 
-  //   $("<p/>", {
-  //     text: `${h}:00`,
-  //   }).appendTo(`#text-center-${h}`);
+      $("<div/>", {
+        id: `card-title-${index}`,
+        class: `card-title fw-bold`,
+      }).appendTo(`#card-body-${index}`);
 
-  //   // Create delete icon
-  //   $("<i/>", {
-  //     class: `delete-icon fas fa-trash ${showHideDeleteIcon(`hour-${h}`)}`,
-  //     click: () => {
-  //       clearSpecificWorkPlan(`hour-${h}`);
-  //     },
-  //   })
-  //     .attr("aria-hidden", "true")
-  //     .appendTo(`#text-center-${h}`);
+      $("<p/>", {
+        class: ``,
+        text: `${currentDate}`,
+      }).appendTo(`#card-title-${index}`);
 
-  //   // Create textarea
-  //   $("<textarea/>", {
-  //     class: "col-8 col-md-10 description",
-  //   })
-  //     .attr("rows", "3")
-  //     .appendTo(`#hour-${h}`);
+      $("<p/>", {
+        id: `weatherIcon-${index}`,
+        class: ``,
+      }).appendTo(`#card-title-${index}`);
 
-  //   // Create save button
-  //   $("<button/>", {
-  //     id: `saveBtn-${h}`,
-  //     class: "btn saveBtn col-2 col-md-1",
-  //   })
-  //     .attr("aria-label", "save")
-  //     .appendTo(`#hour-${h}`);
+      $("<img />", {
+        class: "weather-icon",
+      })
+        .attr("src", currentWeatherIcon)
+        .appendTo(`#weatherIcon-${index}`);
 
-  //   // Create save icon
-  //   $("<i/>", {
-  //     class: "fas fa-save",
-  //   })
-  //     .attr("aria-hidden", "true")
-  //     .appendTo(`#saveBtn-${h}`);
-  // });
+      $("<p/>", {
+        class: `card-text`,
+        text: `Temp: ${fahrenheit}`,
+      }).appendTo(`#card-body-${index}`);
 
-  // $("<button/>", {
-  //   id: `clearBtn`,
-  //   class: "btn btn-danger",
-  //   text: "Clear all",
-  //   click: (e) => {
-  //     clearAllWorkPlans(e);
-  //   },
-  // }).appendTo(`.btn-container`);
+      $("<p/>", {
+        class: `card-text`,
+        text: `Wind: ${wind}`,
+      }).appendTo(`#card-body-${index}`);
 
-  const saveWorkPlanData = () => {
-    // Get all button elements by class
-    const saveBtns = $(".saveBtn");
-    // Add a click event listener to each save button
-    saveBtns.on("click", function (e) {
-      // The `this` keyword refers to the element that was clicked
-      const saveBtns = $(this);
-      // Find the time-block element that contains the save button
-      const timeBlock = saveBtns.closest(".time-block");
-      // Get the id of the time-block element (e.g. "hour-9")
-      const id = timeBlock.attr("id");
-      // Get the value of the description input field
-      const description = timeBlock.find(".description").val();
-      console.log(description.length);
-      if (description.length === 0 || description === "") {
-        alert("There is no data to save!");
-        return;
-      }
-      // Save the description in local storage with key is id
-      localStorage.setItem(id, JSON.stringify(description));
-      // Show delete icon after add data
-      $(`#${id} .text-center .delete-icon`).removeClass("hidden");
+      $("<p/>", {
+        class: `card-text`,
+        text: `Humidity: ${humidity}`,
+      }).appendTo(`#card-body-${index}`);
     });
   };
 
-  // Get work plan data from local storage
-  const retrieveWorkPlanData = () => {
-    $(".time-block").each(function () {
-      let id = $(this).attr("id");
-      let data = localStorage.getItem(id);
-      if (data) {
-        $(this).find(".description").val(JSON.parse(data));
-      }
+  // Display search history
+  const showSearchHistory = () => {
+    const savedSearchesElem = $("#savedSearched");
+    savedSearchesElem.empty();
+
+    savedSearches.forEach((s) => {
+      savedSearchesElem.append(
+        $("<div/>", { class: "mb-1" }).append(
+          $("<button/>", {
+            class: "btn btn-secondary w-100",
+            text: `${s.city}`,
+            click: (e) => {
+              const { lat, lng } = e.target.dataset;
+              getCityCurrentWeatherByLatLng(lat, lng);
+              getCity5DayWeatherByLatLng(lat, lng);
+            },
+          })
+            .attr("data-lat", s.lat)
+            .attr("data-lng", s.lng)
+        )
+      );
     });
   };
 
-  const clearSpecificWorkPlan = (key) => {
-    // Show a browser alert to confirm user action
-    const confirm = window.confirm("Are you sure to clear this data?");
-
-    if (confirm) {
-      // Clear local storage by key
-      localStorage.removeItem(key);
-      // Clear text in textarea description
-      $(`#${key} .description`).val("");
-      // Hide delete icon
-      $(`#${key} .text-center .delete-icon`).addClass("hidden");
-    }
-  };
-
-  // Clear all the work plan in local storage
-  const clearAllWorkPlans = (e) => {
-    // Check if local storage has data
-    if (localStorage.length === 0) {
-      window.alert("There is no data!");
-      return;
-    }
-
-    // Show a browser alert to confirm user action
-    const confirm = window.confirm("Are you sure to clear all data?");
-
-    if (confirm) {
-      // Clear all storage
-      localStorage.clear();
-      // Clear text in textarea description
-      $(".time-block .description").val("");
-      // Hide delete icon
-      $(`.time-block .text-center .delete-icon`).addClass("hidden");
-    }
-  };
-
-  saveWorkPlanData();
-  retrieveWorkPlanData();
+  showSearchHistory();
   getSearchCityWeather();
 });

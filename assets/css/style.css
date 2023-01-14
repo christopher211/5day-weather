@@ -31,6 +31,10 @@ i {
   width: 50px;
 }
 
+.custom-card-body {
+  background-color: dimgray;
+}
+
 .hidden {
   display: none;
 }

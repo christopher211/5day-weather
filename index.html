@@ -30,16 +30,19 @@
     </header>
     <main class="row container-fluid g-0">
       <div class="col-4 border">
-        <h2>Search for a City:</h2>
-        <input id="inputCity" class="w-100" type="text" />
-        <button id="searchBtn" class="btn btn-primary w-100" type="button">
-          Search
-        </button>
-        <hr />
+        <div class="p-3">
+          <h2>Search for a City:</h2>
+          <input id="inputCity" class="w-100 my-3" type="text" />
+          <button id="searchBtn" class="btn btn-primary w-100" type="button">
+            Search
+          </button>
+          <hr />
+          <div id="savedSearched"></div>
+        </div>
       </div>
       <div class="col-8 border">
         <div class="detail-container p-3">
-          <div class="card my-3">
+          <div class="card mb-3">
             <div class="card-body">
               <div class="card-title d-flex align-items-center fs-3 fw-bold">
                 <p id="currentCity">City:</p>
@@ -51,45 +54,12 @@
               <p id="currentHumidity" class="card-text">Humidity:</p>
             </div>
           </div>
-          <div id="fiveDayForecast" class="">
+          <div class="overflow-hidden">
             <h3>5-Day Forecast:</h3>
-            <div class="row container-fluid justify-content-between g-0">
-              <div class="col card">
-                <div class="card-body">
-                  <h5 class="card-title">Card title</h5>
-                  <h6 class="card-subtitle mb-2 text-muted">Card subtitle</h6>
-                  <p class="card-text">Some quick example text</p>
-                </div>
-              </div>
-              <div class="col ms-2 card">
-                <div class="card-body">
-                  <h5 class="card-title">Card title</h5>
-                  <h6 class="card-subtitle mb-2 text-muted">Card subtitle</h6>
-                  <p class="card-text">Some quick example text</p>
-                </div>
-              </div>
-              <div class="col ms-2 card">
-                <div class="card-body">
-                  <h5 class="card-title">Card title</h5>
-                  <h6 class="card-subtitle mb-2 text-muted">Card subtitle</h6>
-                  <p class="card-text">Some quick example text</p>
-                </div>
-              </div>
-              <div class="col ms-2 card">
-                <div class="card-body">
-                  <h5 class="card-title">Card title</h5>
-                  <h6 class="card-subtitle mb-2 text-muted">Card subtitle</h6>
-                  <p class="card-text">Some quick example text</p>
-                </div>
-              </div>
-              <div class="col ms-2 card">
-                <div class="card-body">
-                  <h5 class="card-title">Card title</h5>
-                  <h6 class="card-subtitle mb-2 text-muted">Card subtitle</h6>
-                  <p class="card-text">Some quick example text</p>
-                </div>
-              </div>
-            </div>
+            <div
+              id="fiveDayForecast"
+              class="row container-fluid justify-content-between g-0"
+            ></div>
           </div>
         </div>
       </div>
