@@ -1,6 +1,6 @@
 const API_KEY = "070f884be9b7cb792ff556300c39e43d";
-const API_ENDPOINT = "http://api.openweathermap.org/";
-const WEATHER_ICON = "http://openweathermap.org/img/wn/";
+const API_ENDPOINT = "https://api.openweathermap.org/";
+const WEATHER_ICON = "https://openweathermap.org/img/wn/";
 
 $(document).ready(function () {
   let latitude = 0;
